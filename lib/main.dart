@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/party_provider.dart';
-import 'screens/parties/parties_screen.dart';
+import 'providers/item_provider.dart';
+import 'screens/home_nav_screen.dart';
 import 'utils/colors.dart';
 
 void main() async {
@@ -17,6 +18,7 @@ class AAABillingApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => PartyProvider()),
+        ChangeNotifierProvider(create: (_) => ItemProvider()),
       ],
       child: MaterialApp(
         title: 'AAA Billing',
@@ -32,7 +34,7 @@ class AAABillingApp extends StatelessWidget {
             iconTheme: IconThemeData(color: Colors.white),
           ),
         ),
-        home: const PartiesScreen(),
+        home: const HomeNavScreen(),
       ),
     );
   }
