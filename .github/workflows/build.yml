@@ -30,39 +30,6 @@ jobs:
           rm -rf android
           flutter create . --platforms=android --no-pub
 
-      - name: Set minSdk 23 and compileSdk 34
-        run: |
-          cat << 'KTS' > android/app/build.gradle.kts
-plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("dev.flutter.flutter-gradle-plugin")
-}
-
-android {
-    namespace = "com.example.aaa_billing"
-    compileSdk = 34
-
-    defaultConfig {
-        applicationId = "com.example.aaa_billing"
-        minSdk = 23
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
-    }
-
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("debug")
-        }
-    }
-}
-
-flutter {
-    source = "../.."
-}
-KTS
-
       - name: Install Dependencies
         run: flutter pub get
 
