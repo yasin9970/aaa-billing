@@ -25,32 +25,11 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Generate Android Project
-        run: |
-          rm -rf android
-          flutter create . --platforms=android --no-pub
-
-      - name: Apply SDK 34 and minSdk 21
-        run: python3 update_sdk.py
+      - name: Setup Android Environment & Fix SDK
+        run: bash setup_android.sh
 
       - name: Install Dependencies
         run: flutter pub get
-
-      - name: Apply Custom App Launcher Icon
-        run: |
-          mkdir -p android/app/src/main/res/mipmap-mdpi
-          mkdir -p android/app/src/main/res/mipmap-hdpi
-          mkdir -p android/app/src/main/res/mipmap-xhdpi
-          mkdir -p android/app/src/main/res/mipmap-xxhdpi
-          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
-          if [ -f "assets/icon/app_icon.png" ] && [ -s "assets/icon/app_icon.png" ]; then
-            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-            echo "Custom app icon applied successfully!"
-          fi
 
       - name: Build Release APK
         run: flutter build apk --release
