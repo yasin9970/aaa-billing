@@ -1,74 +1,47 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import '../../utils/colors.dart';
+import 'business_profile_screen.dart';
+import 'backup_screen.dart';
+import 'import_export_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
-  Future<void> _createLocalBackup(BuildContext context) async {
-    try {
-      final dbPath = await getDatabasesPath();
-      final sourcePath = join(dbPath, 'aaa_billing.db');
-
-      // Backup to internal storage folder
-      final backupDir = Directory('/storage/emulated/0/Download/AAA_Billing_Backups');
-      if (!await backupDir.exists()) {
-        await backupDir.create(recursive: true);
-      }
-
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final targetPath = "${backupDir.path}/Backup_$timestamp.db";
-
-      final File sourceFile = File(sourcePath);
-      await sourceFile.copy(targetPath);
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text("Backup Successful!"),
-          content: Text("Backup saved at:\n$targetPath"),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK")),
-          ],
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Backup notice: $e")));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Settings & Backup")),
+      appBar: AppBar(title: const Text("Settings")),
       body: ListView(
         children: [
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text("DATA BACKUP & RESTORE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textSecondary)),
+            child: Text("BUSINESS DETAILS", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textSecondary)),
           ),
           ListTile(
-            leading: const Icon(Icons.backup, color: AppColors.saleGreen),
-            title: const Text("Create Local Backup", style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text("Save full database copy to any folder"),
-            onTap: () => _createLocalBackup(context),
+            leading: const Icon(Icons.store, color: AppColors.primary),
+            title: const Text("Shop & Business Profile", style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: const Text("Change Shop Name, Phone, Address & Terms"),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BusinessProfileScreen())),
           ),
           const Divider(),
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text("BUSINESS PROFILE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textSecondary)),
+            child: Text("DATA & STORAGE", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textSecondary)),
           ),
-          const ListTile(
-            leading: Icon(Icons.storefront, color: AppColors.primary),
-            title: Text("Shop / Business Name"),
-            subtitle: Text("AAA Billing"),
+          ListTile(
+            leading: const Icon(Icons.backup, color: AppColors.saleGreen),
+            title: const Text("Backup & Restore", style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: const Text("1-Click save to phone storage"),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen())),
           ),
-          const ListTile(
-            leading: Icon(Icons.receipt, color: AppColors.primary),
-            title: Text("Invoice Prefix"),
-            subtitle: Text("INV-"),
+          ListTile(
+            leading: const Icon(Icons.import_export, color: Colors.deepOrange),
+            title: const Text("Import / Export (Vyapar Data)", style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: const Text("Export or load parties from CSV"),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportExportScreen())),
           ),
         ],
       ),

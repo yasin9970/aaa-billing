@@ -10,6 +10,7 @@ import '../../providers/invoice_provider.dart';
 import '../../providers/party_provider.dart';
 import '../../providers/item_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/business_provider.dart';
 import '../../services/pdf_invoice_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/formatters.dart';
@@ -42,19 +43,35 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
   }
 
   Future<void> _shareOnWhatsapp() async {
-    final pdfBytes = await PdfInvoiceService.generateInvoicePdf(invoice: widget.invoice, items: _items);
+    final prof = Provider.of<BusinessProvider>(context, listen: false).profile;
+    final pdfBytes = await PdfInvoiceService.generateInvoicePdf(
+      invoice: widget.invoice,
+      items: _items,
+      shopName: prof.businessName,
+      shopAddress: prof.address,
+      shopPhone: prof.phone,
+      shopEmail: prof.email,
+    );
     final output = await getTemporaryDirectory();
     final file = File("${output.path}/${widget.invoice.invoiceNumber}.pdf");
     await file.writeAsBytes(pdfBytes);
 
     await Share.shareXFiles(
       [XFile(file.path)],
-      text: "Dear Customer, here is your invoice ${widget.invoice.invoiceNumber} from BATTERY ZONE. Total: ₹${widget.invoice.totalAmount}. Thank you!",
+      text: "Dear Customer, here is your invoice ${widget.invoice.invoiceNumber} from ${prof.businessName}. Total: ₹${widget.invoice.totalAmount}. Thank you!",
     );
   }
 
   Future<void> _printInvoice() async {
-    final pdfBytes = await PdfInvoiceService.generateInvoicePdf(invoice: widget.invoice, items: _items);
+    final prof = Provider.of<BusinessProvider>(context, listen: false).profile;
+    final pdfBytes = await PdfInvoiceService.generateInvoicePdf(
+      invoice: widget.invoice,
+      items: _items,
+      shopName: prof.businessName,
+      shopAddress: prof.address,
+      shopPhone: prof.phone,
+      shopEmail: prof.email,
+    );
     await Printing.layoutPdf(onLayout: (_) => pdfBytes);
   }
 
@@ -79,7 +96,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
 
     final db = await DBHelper.instance.database;
     await db.transaction((txn) async {
-      // 1. Reverse Stock
       for (var item in _items) {
         if (item.itemId != null) {
           if (widget.invoice.invoiceType == 'SALE') {
@@ -90,7 +106,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         }
       }
 
-      // 2. Reverse Party Ledger
       if (widget.invoice.partyId != null && widget.invoice.balanceAmount > 0) {
         if (widget.invoice.invoiceType == 'SALE') {
           await txn.rawUpdate('UPDATE parties SET current_balance = current_balance - ? WHERE id = ?', [widget.invoice.balanceAmount, widget.invoice.partyId]);
@@ -99,7 +114,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         }
       }
 
-      // 3. Delete items & invoice
       await txn.delete('invoice_items', where: 'invoice_id = ?', whereArgs: [widget.invoice.id]);
       await txn.delete('invoices', where: 'id = ?', whereArgs: [widget.invoice.id]);
     });
@@ -129,7 +143,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         actions: [
           IconButton(icon: const Icon(Icons.print_outlined, color: Colors.black87), onPressed: _printInvoice),
           IconButton(icon: const Icon(Icons.share_outlined, color: Colors.black87), onPressed: _shareOnWhatsapp),
-          IconButton(icon: const Icon(Icons.more_vert, color: Colors.black87), onPressed: () {}),
         ],
       ),
       body: _isLoading
@@ -140,7 +153,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      // Top Invoice No & Date Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -161,8 +173,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                         ],
                       ),
                       const Divider(height: 24),
-
-                      // Customer Box (Screenshot 2 Match)
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
@@ -176,27 +186,20 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Billed Items Section Bar
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF90CAF9).withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
+                        decoration: BoxDecoration(color: const Color(0xFF90CAF9).withOpacity(0.4), borderRadius: BorderRadius.circular(6)),
                         child: Row(
-                          children: [
-                            const Icon(Icons.check_circle_outline, size: 16, color: Colors.blue),
-                            const SizedBox(width: 8),
-                            const Text("Billed Items", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueAccent)),
-                            const Spacer(),
-                            const Text("Rate exl. tax", style: TextStyle(fontSize: 11, color: Colors.blueAccent)),
+                          children: const [
+                            Icon(Icons.check_circle_outline, size: 16, color: Colors.blue),
+                            SizedBox(width: 8),
+                            Text("Billed Items", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueAccent)),
+                            Spacer(),
+                            Text("Rate exl. tax", style: TextStyle(fontSize: 11, color: Colors.blueAccent)),
                           ],
                         ),
                       ),
                       const SizedBox(height: 8),
-
-                      // Line Item Card (Screenshot 2 Match)
                       ...List.generate(_items.length, (idx) {
                         final it = _items[idx];
                         return Container(
@@ -236,8 +239,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                         );
                       }),
                       const SizedBox(height: 16),
-
-                      // Total, Received & Balance (Screenshot 2 Match)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
@@ -278,8 +279,6 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                     ],
                   ),
                 ),
-
-                // Bottom Delete & Edit Buttons (Screenshot 2 Match)
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)]),
@@ -287,10 +286,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(color: Colors.grey.shade400),
-                          ),
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12), side: BorderSide(color: Colors.grey.shade400)),
                           onPressed: _deleteInvoice,
                           child: const Text("Delete", style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
                         ),
@@ -298,10 +294,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1E88E5),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E88E5), padding: const EdgeInsets.symmetric(vertical: 12)),
                           onPressed: _printInvoice,
                           child: const Text("Print / View PDF", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
