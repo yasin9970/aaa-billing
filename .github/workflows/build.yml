@@ -25,14 +25,27 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Ensure Android Platform Scaffolding
-        run: flutter create . --platforms=android
+      - name: Ensure Android Platform Offline
+        run: flutter create . --platforms=android --offline
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Generate Custom App Icons
-        run: dart run flutter_launcher_icons
+      - name: Apply Custom App Launcher Icon
+        run: |
+          mkdir -p android/app/src/main/res/mipmap-mdpi
+          mkdir -p android/app/src/main/res/mipmap-hdpi
+          mkdir -p android/app/src/main/res/mipmap-xhdpi
+          mkdir -p android/app/src/main/res/mipmap-xxhdpi
+          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+          if [ -f "assets/icon/app_icon.png" ]; then
+            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+            cp assets/icon/app_icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+            echo "Custom app icon applied successfully!"
+          fi
 
       - name: Build Release APK
         run: flutter build apk --release
