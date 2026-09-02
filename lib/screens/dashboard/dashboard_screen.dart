@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../widgets/app_drawer.dart';
 import '../../utils/colors.dart';
 import '../../utils/formatters.dart';
 import '../sales/create_invoice_screen.dart';
@@ -8,7 +9,8 @@ import '../parties/add_party_screen.dart';
 import '../inventory/add_item_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  final Function(int)? onDrawerTabSelect;
+  const DashboardScreen({Key? key, this.onDrawerTabSelect}) : super(key: key);
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -26,6 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final dash = Provider.of<DashboardProvider>(context);
 
     return Scaffold(
+      drawer: VyaparAppDrawer(onTabSelect: widget.onDrawerTabSelect),
       appBar: AppBar(
         title: const Text('AAA Billing Dashboard'),
         actions: [
@@ -71,11 +74,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Quick Actions Title
+              // Quick Actions
               const Text("QUICK ACTIONS", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(height: 10),
 
-              // 4 Quick Buttons
               Row(
                 children: [
                   _buildActionBtn("Sale", Icons.add_shopping_cart, AppColors.saleGreen, () {

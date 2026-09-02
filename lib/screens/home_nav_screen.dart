@@ -3,6 +3,7 @@ import 'dashboard/dashboard_screen.dart';
 import 'parties/parties_screen.dart';
 import 'inventory/items_screen.dart';
 import 'sales/invoices_screen.dart';
+import '../widgets/app_drawer.dart';
 import '../utils/colors.dart';
 
 class HomeNavScreen extends StatefulWidget {
@@ -15,17 +16,18 @@ class HomeNavScreen extends StatefulWidget {
 class _HomeNavScreenState extends State<HomeNavScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    DashboardScreen(),
-    PartiesScreen(),
-    ItemsScreen(),
-    InvoicesScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final screens = [
+      DashboardScreen(onDrawerTabSelect: (idx) => setState(() => _currentIndex = idx)),
+      const PartiesScreen(),
+      const ItemsScreen(),
+      const InvoicesScreen(),
+    ];
+
     return Scaffold(
-      body: _screens[_currentIndex],
+      drawer: VyaparAppDrawer(onTabSelect: (idx) => setState(() => _currentIndex = idx)),
+      body: screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: AppColors.primary,
