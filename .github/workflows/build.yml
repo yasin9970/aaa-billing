@@ -25,32 +25,66 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Generate Android Project
+      - name: Recreate Android Project
         run: |
           rm -rf android
           flutter create . --platforms=android --no-pub
 
-      - name: Configure SDK 35 & minSdk 21
+      - name: Force SDK 34 for App and All Plugins
         run: |
-          python3 -c "
-          f = 'android/app/build.gradle.kts'
-          with open(f, 'r') as fp:
-              c = fp.read()
-          c = c.replace('compileSdk = flutter.compileSdkVersion', 'compileSdk = 35')
-          c = c.replace('minSdk = flutter.minSdkVersion', 'minSdk = 21')
-          c = c.replace('targetSdk = flutter.targetSdkVersion', 'targetSdk = 35')
-          with open(f, 'w') as fp:
-              fp.write(c)
+          cat << 'GROOVY' >> android/build.gradle
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.hasProperty("android")) {
+                      project.android {
+                          compileSdkVersion 34
+                          defaultConfig {
+                              minSdkVersion 21
+                              targetSdkVersion 34
+                          }
+                      }
+                  }
+              }
+          }
+          GROOVY
 
-          gp = 'android/gradle.properties'
-          with open(gp, 'a') as fp:
-              fp.write('\nandroid.suppressUnsupportedCompileSdk=35\n')
-          "
+          cat << 'KTS' > android/app/build.gradle.kts
+          plugins {
+              id("com.android.application")
+              id("kotlin-android")
+              id("dev.flutter.flutter-gradle-plugin")
+          }
+
+          android {
+              namespace = "com.example.aaa_billing"
+              compileSdk = 34
+
+              defaultConfig {
+                  applicationId = "com.example.aaa_billing"
+                  minSdk = 21
+                  targetSdk = 34
+                  versionCode = 1
+                  versionName = "1.0.0"
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig = signingConfigs.getByName("debug")
+                      isMinifyEnabled = false
+                      isShrinkResources = false
+                  }
+              }
+          }
+
+          flutter {
+              source = "../.."
+          }
+          KTS
 
       - name: Install Dependencies
         run: flutter pub get
 
-      - name: Setup Custom App Launcher Icon
+      - name: Set Custom App Launcher Icon
         run: |
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
           for dir in mipmap-mdpi mipmap-hdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi; do
