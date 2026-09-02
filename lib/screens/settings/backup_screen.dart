@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import '../../utils/colors.dart';
 
@@ -32,7 +32,7 @@ class _BackupScreenState extends State<BackupScreen> {
   Future<void> _createBackup() async {
     try {
       final dbPath = await getDatabasesPath();
-      final source = File(join(dbPath, 'aaa_billing.db'));
+      final source = File(p.join(dbPath, 'aaa_billing.db'));
 
       if (!await _dir.exists()) {
         await _dir.create(recursive: true);
@@ -41,8 +41,10 @@ class _BackupScreenState extends State<BackupScreen> {
       final targetName = "${_dir.path}/AAA_Backup_${DateTime.now().millisecondsSinceEpoch}.db";
       await source.copy(targetName);
       await _loadBackups();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Backup created: $targetName")));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Backup error: $e")));
     }
   }
@@ -50,11 +52,13 @@ class _BackupScreenState extends State<BackupScreen> {
   Future<void> _restoreBackup(File file) async {
     try {
       final dbPath = await getDatabasesPath();
-      final target = File(join(dbPath, 'aaa_billing.db'));
+      final target = File(p.join(dbPath, 'aaa_billing.db'));
       await file.copy(target.path);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Backup Restored! Please restart app.")));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Restore error: $e")));
     }
   }
@@ -97,7 +101,7 @@ class _BackupScreenState extends State<BackupScreen> {
                     itemCount: _backupFiles.length,
                     itemBuilder: (ctx, i) {
                       final f = _backupFiles[i];
-                      final name = basename(f.path);
+                      final name = p.basename(f.path);
                       return Card(
                         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                         child: ListTile(
