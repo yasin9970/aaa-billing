@@ -55,9 +55,9 @@ class Party {
   final String name;
   final String phone;
   final String address;
-  final String type; // 'customer' or 'supplier'
+  final String type;
   final double openingBalance;
-  final double currentBalance; // Positive: To Receive, Negative: To Pay
+  final double currentBalance;
   final String createdAt;
 
   Party({
@@ -102,7 +102,7 @@ class Item {
   final int? id;
   final String name;
   final String category;
-  final String unit; // PCS, KG, BOX, LTR, etc.
+  final String unit;
   final double purchasePrice;
   final double salePrice;
   final double currentStock;
@@ -146,6 +146,130 @@ class Item {
       currentStock: (map['current_stock'] as num?)?.toDouble() ?? 0.0,
       minStockAlert: (map['min_stock_alert'] as num?)?.toDouble() ?? 5.0,
       barcode: map['barcode'] ?? '',
+    );
+  }
+}
+
+class Invoice {
+  final int? id;
+  final String invoiceNumber;
+  final String invoiceType; // 'SALE' or 'PURCHASE'
+  final int? partyId;
+  final String partyName;
+  final String date;
+  final double subtotal;
+  final double discount;
+  final double totalAmount;
+  final double paidAmount;
+  final double balanceAmount;
+  final String paymentStatus; // 'PAID', 'UNPAID', 'PARTIAL'
+  final String paymentMode;
+  final String notes;
+  final String createdAt;
+
+  Invoice({
+    this.id,
+    required this.invoiceNumber,
+    required this.invoiceType,
+    this.partyId,
+    required this.partyName,
+    required this.date,
+    required this.subtotal,
+    this.discount = 0.0,
+    required this.totalAmount,
+    this.paidAmount = 0.0,
+    this.balanceAmount = 0.0,
+    required this.paymentStatus,
+    this.paymentMode = 'CASH',
+    this.notes = '',
+    required this.createdAt,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'invoice_number': invoiceNumber,
+      'invoice_type': invoiceType,
+      'party_id': partyId,
+      'party_name': partyName,
+      'date': date,
+      'subtotal': subtotal,
+      'discount': discount,
+      'total_amount': totalAmount,
+      'paid_amount': paidAmount,
+      'balance_amount': balanceAmount,
+      'payment_status': paymentStatus,
+      'payment_mode': paymentMode,
+      'notes': notes,
+      'created_at': createdAt,
+    };
+  }
+
+  factory Invoice.fromMap(Map<String, dynamic> map) {
+    return Invoice(
+      id: map['id'],
+      invoiceNumber: map['invoice_number'],
+      invoiceType: map['invoice_type'],
+      partyId: map['party_id'],
+      partyName: map['party_name'],
+      date: map['date'],
+      subtotal: (map['subtotal'] as num?)?.toDouble() ?? 0.0,
+      discount: (map['discount'] as num?)?.toDouble() ?? 0.0,
+      totalAmount: (map['total_amount'] as num?)?.toDouble() ?? 0.0,
+      paidAmount: (map['paid_amount'] as num?)?.toDouble() ?? 0.0,
+      balanceAmount: (map['balance_amount'] as num?)?.toDouble() ?? 0.0,
+      paymentStatus: map['payment_status'] ?? 'PAID',
+      paymentMode: map['payment_mode'] ?? 'CASH',
+      notes: map['notes'] ?? '',
+      createdAt: map['created_at'] ?? '',
+    );
+  }
+}
+
+class InvoiceItem {
+  final int? id;
+  final int? invoiceId;
+  final int? itemId;
+  final String itemName;
+  final String unit;
+  final double price;
+  final double quantity;
+  final double total;
+
+  InvoiceItem({
+    this.id,
+    this.invoiceId,
+    this.itemId,
+    required this.itemName,
+    this.unit = 'PCS',
+    required this.price,
+    required this.quantity,
+    required this.total,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'invoice_id': invoiceId,
+      'item_id': itemId,
+      'item_name': itemName,
+      'unit': unit,
+      'price': price,
+      'quantity': quantity,
+      'total': total,
+    };
+  }
+
+  factory InvoiceItem.fromMap(Map<String, dynamic> map) {
+    return InvoiceItem(
+      id: map['id'],
+      invoiceId: map['invoice_id'],
+      itemId: map['item_id'],
+      itemName: map['item_name'],
+      unit: map['unit'] ?? 'PCS',
+      price: (map['price'] as num?)?.toDouble() ?? 0.0,
+      quantity: (map['quantity'] as num?)?.toDouble() ?? 0.0,
+      total: (map['total'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

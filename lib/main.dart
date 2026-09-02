@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/party_provider.dart';
 import 'providers/item_provider.dart';
+import 'providers/invoice_provider.dart';
+import 'providers/dashboard_provider.dart';
 import 'screens/home_nav_screen.dart';
 import 'utils/colors.dart';
 
@@ -17,8 +19,10 @@ class AAABillingApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => PartyProvider()),
         ChangeNotifierProvider(create: (_) => ItemProvider()),
+        ChangeNotifierProvider(create: (_) => InvoiceProvider()),
       ],
       child: MaterialApp(
         title: 'AAA Billing',
