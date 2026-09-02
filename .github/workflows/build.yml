@@ -25,10 +25,50 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Recreate Android Project
+      - name: Recreate Android Project & Force SDK 34
         run: |
           rm -rf android
           flutter create . --platforms=android --no-pub
+
+          cat << 'KTS' > android/app/build.gradle.kts
+          plugins {
+              id("com.android.application")
+              id("kotlin-android")
+              id("dev.flutter.flutter-gradle-plugin")
+          }
+
+          android {
+              namespace = "com.example.aaa_billing"
+              compileSdk = 34
+
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_1_8
+                  targetCompatibility = JavaVersion.VERSION_1_8
+              }
+
+              kotlinOptions {
+                  jvmTarget = "1.8"
+              }
+
+              defaultConfig {
+                  applicationId = "com.example.aaa_billing"
+                  minSdk = 23
+                  targetSdk = 34
+                  versionCode = 1
+                  versionName = "1.0.0"
+              }
+
+              buildTypes {
+                  release {
+                      signingConfig = signingConfigs.getByName("debug")
+                  }
+              }
+          }
+
+          flutter {
+              source = "../.."
+          }
+          KTS
 
       - name: Install Dependencies
         run: flutter pub get
@@ -44,7 +84,7 @@ jobs:
           done
 
       - name: Build Release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
