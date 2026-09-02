@@ -25,74 +25,24 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Clean & Recreate Android Platform
+      - name: Generate Android Project
         run: |
           rm -rf android
           flutter create . --platforms=android --no-pub
 
-      - name: Configure Android SDK 34 & minSdk 21 Globally
-        run: |
-          # 1. Global properties for Flutter Gradle Plugin & All Plugins (printing, share_plus)
-          echo "flutter.compileSdkVersion=34" >> android/gradle.properties
-          echo "flutter.minSdkVersion=21" >> android/gradle.properties
-          echo "flutter.targetSdkVersion=34" >> android/gradle.properties
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
-
-          # 2. Write exact app build.gradle.kts
-          cat << 'KTS' > android/app/build.gradle.kts
-plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("dev.flutter.flutter-gradle-plugin")
-}
-
-android {
-    namespace = "com.example.aaa_billing"
-    compileSdk = 34
-    ndkVersion = flutter.ndkVersion
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
-    defaultConfig {
-        applicationId = "com.example.aaa_billing"
-        minSdk = 21
-        targetSdk = 34
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
-
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("debug")
-        }
-    }
-}
-
-flutter {
-    source = "../.."
-}
-KTS
+      - name: Apply SDK 34 and minSdk 21
+        run: python3 update_sdk.py
 
       - name: Install Dependencies
         run: flutter pub get
 
       - name: Apply Custom App Launcher Icon
         run: |
-          rm -rf android/app/src/main/res/mipmap-anydpi-v26
           mkdir -p android/app/src/main/res/mipmap-mdpi
           mkdir -p android/app/src/main/res/mipmap-hdpi
           mkdir -p android/app/src/main/res/mipmap-xhdpi
           mkdir -p android/app/src/main/res/mipmap-xxhdpi
           mkdir -p android/app/src/main/res/mipmap-xxxhdpi
-
           if [ -f "assets/icon/app_icon.png" ] && [ -s "assets/icon/app_icon.png" ]; then
             cp assets/icon/app_icon.png android/app/src/main/res/mipmap-mdpi/ic_launcher.png
             cp assets/icon/app_icon.png android/app/src/main/res/mipmap-hdpi/ic_launcher.png
