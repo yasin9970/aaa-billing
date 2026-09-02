@@ -30,23 +30,6 @@ jobs:
           if [ ! -d "android" ]; then
             flutter create . --org com.aaabilling.app --project-name aaa_billing
           fi
-          # Force Android SDK 34 for all plugins & bypass strict AAR checks
-          echo "android.suppressUnsupportedCompileSdk=33,34,35,36" >> android/gradle.properties
-          echo "android.experimental.disableCompileSdkChecks=true" >> android/gradle.properties
-          
-          if [ -f "android/build.gradle" ]; then
-            cat << 'EOF_GRADLE' >> android/build.gradle
-subprojects {
-    afterEvaluate { project ->
-        if (project.plugins.hasPlugin("com.android.application") || project.plugins.hasPlugin("com.android.library")) {
-            project.android {
-                compileSdkVersion 34
-            }
-        }
-    }
-}
-EOF_GRADLE
-          fi
 
       - name: Install dependencies
         run: flutter pub get
